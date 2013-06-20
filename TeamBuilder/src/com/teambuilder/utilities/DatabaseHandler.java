@@ -108,8 +108,8 @@ public class DatabaseHandler {
 		queryBuilder.setTables(playerTable + ", " + skillsTable);
 		queryBuilder.appendWhere(playerTable + "." + DatabaseOpenHelper.primaryIndex + "=" + skillsTable + "." + DatabaseOpenHelper.playerIndex);
 		
-//		Cursor c = database.rawQuery("SELECT * FROM PLAYERS", null);
-		Cursor c = queryBuilder.query(database, null, null, null, null, null, null);
+		Cursor c = database.rawQuery("SELECT * FROM PLAYERS", null);
+//		Cursor c = queryBuilder.query(database, null, null, null, null, null, null);
 		
 		return createPlayerList(c);
 	}

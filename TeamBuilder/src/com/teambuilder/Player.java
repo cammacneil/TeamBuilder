@@ -4,13 +4,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Player {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class Player implements Parcelable {
 
 	private long id;
 	private String name;
 	
 	private ArrayList<Integer> groups;
 	private Map<Integer, Integer> skillsMap;
+	
+	public static String label = "Player";
 	
 	public Player (String name)
 	{
@@ -28,6 +33,10 @@ public class Player {
 		
 	}
 	
+	private Player(Parcel in) {
+		id = in.readLong();
+        name = in.readString();
+    }
 	
 	public long getId() {
 		return id;
@@ -74,4 +83,27 @@ public class Player {
 	public String toString() {
 		return name;
 	}
+	
+	@Override
+	public int describeContents() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public void writeToParcel(Parcel out, int flags) {
+		out.writeLong(id);
+		out.writeString(name);
+
+	}
+
+	public static final Player.Creator<Player> CREATOR = new Player.Creator<Player>() {
+        public Player createFromParcel(Parcel in) {
+            return new Player(in);
+        }
+
+        public Player[] newArray(int size) {
+            return new Player[size];
+        }
+    };
 }

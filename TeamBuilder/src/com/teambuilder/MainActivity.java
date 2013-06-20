@@ -41,5 +41,14 @@ public class MainActivity extends Activity {
         actionBar.addTab(tab);
 
     }
+
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		// TODO Auto-generated method stub
+		super.onSaveInstanceState(outState);
+		
+		outState.remove("android:support:fragments");
+	}
+    
     
 }

@@ -20,11 +20,7 @@ public class PlayerEditActivity extends Activity {
 		setContentView(R.layout.activity_playeredit);
 	
 		Intent intent = getIntent();
-		PlayerParcelable playerParcelable = intent.getParcelableExtra(PlayerParcelable.label);
-		
-		if (playerParcelable != null) {
-			player = playerParcelable.player;
-		}
+		player = intent.getParcelableExtra(Player.label);
 		
 		ActionBar actionBar = getActionBar();
 		
@@ -55,6 +51,7 @@ public class PlayerEditActivity extends Activity {
 		
 		Intent intent = new Intent(this, MainActivity.class);
 		startActivity(intent);
+		finish();
 	}
 	
 	public boolean checkFields() {
