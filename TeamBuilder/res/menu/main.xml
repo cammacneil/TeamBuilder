@@ -1,15 +1,2 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
-    <item
-        android:id="@+id/action_players"
-        android:showAsAction="always"
-        android:title="@string/action_players"/>
-    <item
-        android:id="@+id/action_teams"
-        android:showAsAction="always"
-        android:title="@string/action_teams"/>
-    <item
-        android:id="@+id/action_settings"
-        android:orderInCategory="100"
-        android:showAsAction="always"
-        android:title="@string/action_settings"/>
 </menu>

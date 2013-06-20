@@ -1,44 +1,77 @@
 package com.teambuilder;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
 public class Player {
 
-	private String sFirst_Name;
-	private String sLast_Name;
-	private int int_Skill;
+	private long id;
+	private String name;
 	
-	public Player (String sFirst_Name, String sLast_Name, int int_Skill)
+	private ArrayList<Integer> groups;
+	private Map<Integer, Integer> skillsMap;
+	
+	public Player (String name)
 	{
-		this.sFirst_Name = sFirst_Name;
-		this.sLast_Name = sLast_Name;
-		this.int_Skill = int_Skill;
+		this(name, null);
 	}
 
-	public String getsFirst_Name() {
-		return sFirst_Name;
+	public Player (String name, Map<Integer, Integer> skillsMap) {
+		this.name = name;
+		if (skillsMap != null)
+			this.skillsMap = skillsMap;
+		else
+			this.skillsMap = new HashMap<Integer, Integer>();
+		
+		groups = new ArrayList<Integer>();
+		
+	}
+	
+	
+	public long getId() {
+		return id;
 	}
 
-	public void setsFirst_Name(String sFirst_Name) {
-		this.sFirst_Name = sFirst_Name;
+	public void setId(long id) {
+		this.id = id;
 	}
 
-	public String getsLast_Name() {
-		return sLast_Name;
+	public String getName() {
+		return name;
 	}
-
-	public void setsLast_Name(String sLast_Name) {
-		this.sLast_Name = sLast_Name;
+	
+	public void setName(String name) {
+		this.name = name;
 	}
-
-	public int getInt_Skill() {
-		return int_Skill;
+	
+	public void setSkill(Integer activityId, Integer skillLevel) {
+		skillsMap.put(activityId, skillLevel);
 	}
-
-	public void setInt_Skill(int int_Skill) {
-		this.int_Skill = int_Skill;
+	
+	public Integer getSkill(Integer activityId) {
+		if (skillsMap.containsKey(activityId))
+			return skillsMap.get(activityId);
+		else
+			return null;
+	}
+	
+	public void addGroup(Integer groupId) {
+		if (!groups.contains(groupId))
+			groups.add(groupId);
+	}
+	
+	public void removeGroup(Integer groupId) {
+		if (groups.contains(groupId))
+			groups.remove(groups.indexOf(groupId));
+	}
+	
+	public ArrayList<Integer> getGroups() {
+		return groups;
 	}
 	
 	@Override
 	public String toString() {
-		return sFirst_Name + " " + sLast_Name + " - " + int_Skill;
+		return name;
 	}
 }
