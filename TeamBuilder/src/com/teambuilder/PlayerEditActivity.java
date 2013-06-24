@@ -4,22 +4,17 @@ import java.util.ArrayList;
 import java.util.Map;
 
 import android.app.ActionBar;
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.Spinner;
-import android.widget.TextView;
 
 import com.teambuilder.utilities.DatabaseHandler;
 import com.teambuilder.utilities.Utilities;
 
-public class PlayerEditActivity extends Activity {
+public class PlayerEditActivity extends TeamBuilderActivity {
 
 	private Player player;
 	DatabaseHandler db;
@@ -29,7 +24,6 @@ public class PlayerEditActivity extends Activity {
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_playeredit);
 	
@@ -67,38 +61,9 @@ public class PlayerEditActivity extends Activity {
 		for (Integer key : playerSkills.keySet()) {
 			if (availableActivityList.contains(key))
 				availableActivityList.remove(Integer.valueOf(key));
-			
 		}
 		
 		populateSpinner(activitySpinner, availableActivityList, activities);
-	}
-	
-	private void createSkillLayout(Integer key, Integer skill) {
-		LinearLayout layout = new LinearLayout(this);
-		TextView name = new TextView(this);
-		name.setText(activities.get(key));
-		TextView skillView = new TextView(this);
-		skillView.setText(skill);
-		Button deleteButton = new Button(this);
-		deleteButton.setText("X");
-		
-		layout.addView(name);
-		layout.addView(skillView);
-		layout.addView(deleteButton);
-		
-		LinearLayout parent = (LinearLayout)findViewById(R.id.layout_skills);
-		parent.addView(layout);
-	}
-	
-	private void populateSpinner(Spinner spinner, ArrayList<Integer> idList, Map<Integer, String> nameMap) {
-		
-		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item);
-		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-		
-		for (Integer i : idList)
-			adapter.add(nameMap.get(i));
-		
-		spinner.setAdapter(adapter);
 	}
 	
 	public void addSkill(View view) {
