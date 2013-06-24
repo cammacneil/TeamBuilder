@@ -46,6 +46,18 @@ public class DatabaseOpenHelper extends SQLiteOpenHelper {
 		db.execSQL(createActivitiesTable);
 		db.execSQL(createSkillsTable);
 
+		//Create sample groups and activities for testing
+		db.execSQL("INSERT INTO GROUPS (groupName) VALUES " +
+				"(\"HockeyGroup\")," +
+				"(\"BaseballGroup\")," +
+				"(\"FootballGroup\")," +
+				"(\"SoccerGroup\");");
+		
+		db.execSQL("INSERT INTO ACTIVITIES (activityName) VALUES " +
+				"(\"Hockey\")," +
+				"(\"Baseball\")," +
+				"(\"Football\")," +
+				"(\"Soccer\");");
 	}
 
 	@Override

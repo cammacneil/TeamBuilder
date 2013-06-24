@@ -10,5 +10,8 @@
     <string name="text_name_hint">Name</string>
     <string name="menu_addPlayer">Add Player</string>
     <string name="button_save">Save</string>
+    <string name="text_skills_title">Skills</string>
+    <string name="text_groups_title">Groups</string>
+    <string name="button_addSkill">Add</string>
 
 </resources>

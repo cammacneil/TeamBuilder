@@ -17,25 +17,34 @@ public class Player implements Parcelable {
 	
 	public static String label = "Player";
 	
+	public Player() {
+		this(null, null, null);
+	}
+	
 	public Player (String name)
 	{
-		this(name, null);
+		this(name, null, null);
 	}
 
-	public Player (String name, Map<Integer, Integer> skillsMap) {
+	public Player (String name, Map<Integer, Integer> skillsMap, ArrayList<Integer> groups) {
 		this.name = name;
 		if (skillsMap != null)
 			this.skillsMap = skillsMap;
 		else
 			this.skillsMap = new HashMap<Integer, Integer>();
 		
-		groups = new ArrayList<Integer>();
+		if (groups != null)
+			this.groups = groups;
+		else
+			groups = new ArrayList<Integer>();
 		
 	}
 	
 	private Player(Parcel in) {
 		id = in.readLong();
         name = in.readString();
+        skillsMap = in.readHashMap(HashMap.class.getClassLoader());
+        groups = in.readArrayList(ArrayList.class.getClassLoader());
     }
 	
 	public long getId() {
@@ -65,6 +74,10 @@ public class Player implements Parcelable {
 			return null;
 	}
 	
+	public Map<Integer, Integer> getSkillsMap() {
+		return skillsMap;
+	}
+
 	public void addGroup(Integer groupId) {
 		if (!groups.contains(groupId))
 			groups.add(groupId);
@@ -94,7 +107,8 @@ public class Player implements Parcelable {
 	public void writeToParcel(Parcel out, int flags) {
 		out.writeLong(id);
 		out.writeString(name);
-
+		out.writeMap(skillsMap);
+		out.writeList(groups);
 	}
 
 	public static final Player.Creator<Player> CREATOR = new Player.Creator<Player>() {
