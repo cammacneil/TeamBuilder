@@ -2,6 +2,7 @@ package com.teambuilder;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import android.os.Parcel;
@@ -12,7 +13,7 @@ public class Player implements Parcelable {
 	private long id;
 	private String name;
 	
-	private ArrayList<Integer> groups;
+	private List<Integer> groups;
 	private Map<Integer, Integer> skillsMap;
 	
 	public static String label = "Player";
@@ -88,7 +89,7 @@ public class Player implements Parcelable {
 			groups.remove(groups.indexOf(groupId));
 	}
 	
-	public ArrayList<Integer> getGroups() {
+	public List<Integer> getGroups() {
 		return groups;
 	}
 	

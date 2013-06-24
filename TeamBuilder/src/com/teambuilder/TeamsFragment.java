@@ -1,7 +1,5 @@
 package com.teambuilder;
 
-import java.util.ArrayList;
-
 import android.app.Fragment;
 import android.os.Bundle;
 import android.view.LayoutInflater;

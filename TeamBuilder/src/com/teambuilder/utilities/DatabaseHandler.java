@@ -2,7 +2,6 @@ package com.teambuilder.utilities;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 
 import android.content.ContentValues;
 import android.content.Context;

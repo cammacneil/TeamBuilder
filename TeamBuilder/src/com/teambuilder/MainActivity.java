@@ -4,7 +4,6 @@ import android.app.ActionBar;
 import android.app.ActionBar.Tab;
 import android.app.Activity;
 import android.os.Bundle;
-import android.view.Menu;
 
 import com.teambuilder.listeners.TabListener;
 

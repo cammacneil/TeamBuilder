@@ -2,7 +2,6 @@ package com.teambuilder;
 
 import java.util.ArrayList;
 
-import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -18,18 +17,15 @@ import android.widget.ListView;
 
 import com.teambuilder.utilities.DatabaseHandler;
 
-public class PlayersFragment extends Fragment {
+public class PlayersFragment extends TeamBuilderFragment {
 
-	private boolean firstTimeOnCreateOptionsMenu = false;
 	private Menu menu;
 	private DatabaseHandler db;
 	
 	ArrayAdapter<Player> mAdapter;
 	
-	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
 		setHasOptionsMenu(true);
 		db = new DatabaseHandler(getActivity());
@@ -49,7 +45,7 @@ public class PlayersFragment extends Fragment {
 		db.open();
 		
 		ArrayList<Player> list = db.getPlayerList(null);
-		
+
 		db.close();
 		
 		mAdapter = new ArrayAdapter<Player>(this.getActivity(),
@@ -62,7 +58,6 @@ public class PlayersFragment extends Fragment {
 			@Override
 			public void onItemClick(AdapterView<?> adapterView, View view, int position,
 					long id) {
-				// TODO Auto-generated method stub
 				assert adapterView.getItemAtPosition(position) instanceof Player;
 				Player player = (Player)adapterView.getItemAtPosition(position);
 				
@@ -77,7 +72,6 @@ public class PlayersFragment extends Fragment {
 
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-		// TODO Auto-generated method stub
 		if (menu.findItem(R.menu.menu_player_fragment) == null) {
 			inflater.inflate(R.menu.menu_player_fragment, menu);
 		}
@@ -89,7 +83,6 @@ public class PlayersFragment extends Fragment {
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		// TODO Auto-generated method stub
 		if (item.getItemId() == R.id.menu_addPlayer) {
 			Intent intent = new Intent(getActivity(), PlayerEditActivity.class);
 			
@@ -100,7 +93,6 @@ public class PlayersFragment extends Fragment {
 
 	@Override
 	public void onDestroyOptionsMenu() {
-		// TODO Auto-generated method stub
 		menu.removeItem(R.menu.menu_player_fragment);
 		super.onDestroyOptionsMenu();
 	}
