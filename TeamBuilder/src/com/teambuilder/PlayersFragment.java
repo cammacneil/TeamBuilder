@@ -1,6 +1,8 @@
 package com.teambuilder;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -14,6 +16,7 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Spinner;
 
 import com.teambuilder.utilities.DatabaseHandler;
 
@@ -44,14 +47,25 @@ public class PlayersFragment extends TeamBuilderFragment {
 		
 		db.open();
 		
-		ArrayList<Player> list = db.getPlayerList(null);
+		List<Player> playerList = db.getPlayerList(null);
+		Map<Integer, String> activityList = db.getActivityList();
+		Map<Integer, String> groupList = db.getGroupList();
 
 		db.close();
-		
+
+		populateActivitySpinner(activityList);
+		populateGroupSpinner(groupList);
+		createPlayerListArrayAdapter(playerList);
+		populatePlayersList();
+	}
+
+	private void createPlayerListArrayAdapter(List<Player> playerList) {
 		mAdapter = new ArrayAdapter<Player>(this.getActivity(),
 				android.R.layout.simple_list_item_1);
-		mAdapter.addAll(list);
+		mAdapter.addAll(playerList);
+	}
 
+	private void populatePlayersList() {
 		ListView view = (ListView) getActivity().findViewById(R.id.list_players);
 		view.setAdapter(mAdapter);
 		view.setOnItemClickListener(new OnItemClickListener() {
@@ -68,6 +82,16 @@ public class PlayersFragment extends TeamBuilderFragment {
 			}
 		
 		});
+	}
+
+	private void populateActivitySpinner(Map<Integer, String> activityList) {
+		Spinner activitySpinner = (Spinner) getActivity().findViewById(R.id.spinner_activity);
+		getTeamBuilderActivity().populateSpinner(activitySpinner, new ArrayList<Integer>(activityList.keySet()), activityList);
+	}
+	
+	private void populateGroupSpinner(Map<Integer, String> groupList) {
+		Spinner activitySpinner = (Spinner) getActivity().findViewById(R.id.spinner_group);
+		getTeamBuilderActivity().populateSpinner(activitySpinner, new ArrayList<Integer>(groupList.keySet()), groupList);
 	}
 
 	@Override

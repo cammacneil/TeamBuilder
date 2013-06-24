@@ -30,8 +30,10 @@ public final class R {
         public static final int content=0x7f080000;
         public static final int layout_groups=0x7f080007;
         public static final int layout_skills=0x7f080002;
-        public static final int list_players=0x7f08000a;
-        public static final int menu_addPlayer=0x7f08000b;
+        public static final int list_players=0x7f08000c;
+        public static final int menu_addPlayer=0x7f08000d;
+        public static final int spinner_activity=0x7f08000b;
+        public static final int spinner_group=0x7f08000a;
         public static final int spinner_skills=0x7f080004;
         public static final int textView1=0x7f080003;
         public static final int textView2=0x7f080008;

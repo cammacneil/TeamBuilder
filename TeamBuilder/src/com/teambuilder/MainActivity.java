@@ -2,12 +2,11 @@ package com.teambuilder;
 
 import android.app.ActionBar;
 import android.app.ActionBar.Tab;
-import android.app.Activity;
 import android.os.Bundle;
 
 import com.teambuilder.listeners.TabListener;
 
-public class MainActivity extends Activity {
+public class MainActivity extends TeamBuilderActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

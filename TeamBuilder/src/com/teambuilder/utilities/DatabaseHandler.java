@@ -2,6 +2,7 @@ package com.teambuilder.utilities;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -131,8 +132,8 @@ public class DatabaseHandler {
 		return playerList;
 	}
 	
-	public HashMap<Integer, String> getActivityList() {
-		HashMap<Integer, String> activities = new HashMap<Integer, String>();
+	public Map<Integer, String> getActivityList() {
+		Map<Integer, String> activities = new HashMap<Integer, String>();
 		Cursor c = database.rawQuery("SELECT * FROM ACTIVITIES", null);
 		c.moveToFirst();
 		while(!c.isAfterLast()) {
@@ -143,8 +144,8 @@ public class DatabaseHandler {
 		return activities;
 	}
 	
-	public HashMap<Integer, String> getGroupList() {
-		HashMap<Integer, String> groups = new HashMap<Integer, String>();
+	public Map<Integer, String> getGroupList() {
+		Map<Integer, String> groups = new HashMap<Integer, String>();
 		Cursor c = database.rawQuery("SELECT * FROM GROUPS", null);
 		c.moveToFirst();
 		while(!c.isAfterLast()) {

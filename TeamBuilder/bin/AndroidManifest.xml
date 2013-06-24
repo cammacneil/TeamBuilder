@@ -23,6 +23,7 @@
             </intent-filter>
         </activity>
         <activity android:name="com.teambuilder.PlayerEditActivity"></activity>
+        <activity android:name="com.teambuilder.TeamBuilderActivity"></activity>
     </application>
 
 </manifest>
