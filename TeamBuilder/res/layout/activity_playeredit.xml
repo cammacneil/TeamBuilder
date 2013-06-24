@@ -17,35 +17,32 @@
 
 	<LinearLayout
 	    android:id="@+id/layout_skills"
-	    android:layout_width="match_parent"
+	    android:layout_width="fill_parent"
 	    android:layout_height="wrap_content"
 	    android:orientation="vertical" >
         
 	    <TextView
 	        android:id="@+id/textView1"
-	        android:layout_width="wrap_content"
+	        android:layout_width="match_parent"
 	        android:layout_height="wrap_content"
 	        android:text="@string/text_skills_title"
 	        android:textAppearance="?android:attr/textAppearanceLarge" />
 
 	    <Spinner
 	        android:id="@+id/spinner_skills"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:layout_weight="1" />
+	        android:layout_width="300dp"
+	        android:layout_height="wrap_content" />
 
 	    <EditText
 	        android:id="@+id/text_skills"
-	        android:layout_width="match_parent"
+	        android:layout_width="50dp"
 	        android:layout_height="wrap_content"
-	        android:ems="10"
 	        android:inputType="number" />
 	    
 	    <Button 
 	        android:id="@+id/button_add_skills"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
-	        android:layout_gravity="right"
 	        android:text="@string/button_addSkill"
 	        android:onClick="addSkill" />
 	    

@@ -49,7 +49,7 @@ public class PlayersFragment extends Fragment {
 		db.open();
 		
 		ArrayList<Player> list = db.getPlayerList(null);
-
+		
 		db.close();
 		
 		mAdapter = new ArrayAdapter<Player>(this.getActivity(),

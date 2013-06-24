@@ -10,8 +10,11 @@ import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import com.teambuilder.utilities.DatabaseHandler;
 import com.teambuilder.utilities.Utilities;
@@ -64,9 +67,27 @@ public class PlayerEditActivity extends Activity {
 		for (Integer key : playerSkills.keySet()) {
 			if (availableActivityList.contains(key))
 				availableActivityList.remove(Integer.valueOf(key));
+			
 		}
 		
 		populateSpinner(activitySpinner, availableActivityList, activities);
+	}
+	
+	private void createSkillLayout(Integer key, Integer skill) {
+		LinearLayout layout = new LinearLayout(this);
+		TextView name = new TextView(this);
+		name.setText(activities.get(key));
+		TextView skillView = new TextView(this);
+		skillView.setText(skill);
+		Button deleteButton = new Button(this);
+		deleteButton.setText("X");
+		
+		layout.addView(name);
+		layout.addView(skillView);
+		layout.addView(deleteButton);
+		
+		LinearLayout parent = (LinearLayout)findViewById(R.id.layout_skills);
+		parent.addView(layout);
 	}
 	
 	private void populateSpinner(Spinner spinner, ArrayList<Integer> idList, Map<Integer, String> nameMap) {
