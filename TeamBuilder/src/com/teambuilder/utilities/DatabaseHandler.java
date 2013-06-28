@@ -11,6 +11,7 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 
+import com.teambuilder.DatabaseObject;
 import com.teambuilder.Player;
 
 public class DatabaseHandler {
@@ -37,7 +38,17 @@ public class DatabaseHandler {
 		long id = database.insert(DatabaseOpenHelper.Tables.PLAYERS.toString(), null, values);
 		player.setId(id);
 		
+		updatePlayer(player);
+		
 		return player;
+	}
+	
+	public void updatePlayer(Player player) {
+		
+		Map<Integer, Integer> skills = player.getSkillsMap();
+		
+		ContentValues values = new ContentValues();
+		
 	}
 	
 	public long createGroup(String name) {
@@ -132,27 +143,45 @@ public class DatabaseHandler {
 		return playerList;
 	}
 	
-	public Map<Integer, String> getActivityList() {
-		Map<Integer, String> activities = new HashMap<Integer, String>();
+	public Map<Integer, DatabaseObject> getActivityList() {
+		Map<Integer, DatabaseObject> activities = new HashMap<Integer, DatabaseObject>();
 		Cursor c = database.rawQuery("SELECT * FROM ACTIVITIES", null);
 		c.moveToFirst();
 		while(!c.isAfterLast()) {
-			activities.put(c.getInt(0), c.getString(1));
+			activities.put(c.getInt(0), new DatabaseObject(c.getInt(0), c.getString(1)));
 			c.moveToNext();
 		}
 		
 		return activities;
 	}
 	
-	public Map<Integer, String> getGroupList() {
-		Map<Integer, String> groups = new HashMap<Integer, String>();
+	public Map<Integer, DatabaseObject> getGroupList() {
+		Map<Integer, DatabaseObject> groups = new HashMap<Integer, DatabaseObject>();
 		Cursor c = database.rawQuery("SELECT * FROM GROUPS", null);
 		c.moveToFirst();
 		while(!c.isAfterLast()) {
-			groups.put(c.getInt(0), c.getString(1));
+			groups.put(c.getInt(0), new DatabaseObject(c.getInt(0), c.getString(1)));
 			c.moveToNext();
 		}
 		
 		return groups;
+	}
+	
+	private boolean isSkillMappedForPlayer(long playerId, Integer activityId) {
+		Cursor c = database.rawQuery("SELECT * FROM SKILLS WHERE playerIndex=" + playerId + " AND activityIndex=" + activityId + ";", null);
+		if (c.getCount() > 0) {
+			return true;
+		}
+		
+		return false;
+	}
+	
+	private boolean isGroupMappedForPlayer(long playerId, Integer groupId) {
+		Cursor c = database.rawQuery("SELECT * FROM INGROUPS WHERE playerIndex=" + playerId + " AND groupIndex=" + groupId + ";", null);
+		if (c.getCount() > 0) {
+			return true;
+		}
+		
+		return false;
 	}
 }

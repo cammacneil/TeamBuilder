@@ -75,6 +75,11 @@ public class Player implements Parcelable {
 			return null;
 	}
 	
+	public void removeSkill(Integer activityId) {
+		if (skillsMap.containsKey(activityId))
+			skillsMap.remove(activityId);
+	}
+	
 	public Map<Integer, Integer> getSkillsMap() {
 		return skillsMap;
 	}

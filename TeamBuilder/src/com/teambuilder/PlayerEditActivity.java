@@ -1,16 +1,26 @@
 package com.teambuilder;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import android.app.ActionBar;
+import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.InputType;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
 
+import com.teambuilder.listeners.RemoveActivityListener;
+import com.teambuilder.listeners.UpdateActivityDoneListener;
+import com.teambuilder.listeners.UpdateActivityFocusListener;
 import com.teambuilder.utilities.DatabaseHandler;
 import com.teambuilder.utilities.Utilities;
 
@@ -19,8 +29,9 @@ public class PlayerEditActivity extends TeamBuilderActivity {
 	private Player player;
 	DatabaseHandler db;
 	ArrayList<Integer> availableActivityList;
-	Map<Integer, String> activities;
-	Map<Integer, String> groups;
+	Map<Integer, DatabaseObject> activities;
+	Map<Integer, DatabaseObject> groups;
+	Map<Integer, DatabaseObject> oldGroups;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -52,10 +63,9 @@ public class PlayerEditActivity extends TeamBuilderActivity {
 		groups = db.getGroupList();
 		db.close();
 		
+		//Display activity information
 		availableActivityList = new ArrayList<Integer>();
 		availableActivityList.addAll(activities.keySet());
-		
-		Spinner activitySpinner = (Spinner)(findViewById(R.id.spinner_skills));
 		
 		Map<Integer, Integer> playerSkills = player.getSkillsMap();
 		for (Integer key : playerSkills.keySet()) {
@@ -63,18 +73,81 @@ public class PlayerEditActivity extends TeamBuilderActivity {
 				availableActivityList.remove(Integer.valueOf(key));
 		}
 		
-		populateSpinner(activitySpinner, availableActivityList, activities);
+		populateActivitySpinner();
+		
+		//Display group information
+		List<Integer> currentGroupList = player.getGroups();
+		if (currentGroupList != null) {
+			for (Integer i : currentGroupList) {
+				addGroupLayout(groups.get(i));
+			}
+		}
 	}
 	
 	public void addSkill(View view) {
 		Spinner spinner = (Spinner)findViewById(R.id.spinner_skills);
-		String value = (String)spinner.getSelectedItem();
+		DatabaseObject activity = (DatabaseObject)spinner.getSelectedItem();
 		
+		EditText skillText = (EditText)findViewById(R.id.text_skills);
 		
-		Integer key = Utilities.getKeyByValue(activities, value);
+		Integer number;
+		try {
+			number = Integer.parseInt(skillText.getText().toString());
+			if (number < 0 || number > 100)
+				return;
+		} catch (NumberFormatException e) {
+			return;
+		}
+		
+		Integer key = Utilities.getKeyByValue(activities, activity);
 		availableActivityList.remove(Integer.valueOf(key));
 		
+		populateActivitySpinner();
 		
+		player.setSkill(key, number);
+		
+		activity.setStatus(DatabaseObject.ADD_VALUE_FOR_PLAYER);
+		
+		addSkillLayout(activity);
+		
+		if (availableActivityList.size() == 0) {
+			ViewGroup skillsLayout = (ViewGroup)findViewById(R.id.layout_add_skills);
+			skillsLayout.setVisibility(View.GONE);
+		}
+	}
+	
+	private void addSkillLayout(DatabaseObject activity) {
+		ViewGroup parent = (ViewGroup)findViewById(R.id.layout_skills);
+		
+		TextView nameView = new TextView(this);
+		nameView.setText(activity.getName());
+		
+		EditText skillView = new EditText(this);
+		skillView.setText(String.valueOf(player.getSkill(activity.getId())));
+		skillView.setOnEditorActionListener(new UpdateActivityDoneListener(player, activity));
+		skillView.setOnFocusChangeListener(new UpdateActivityFocusListener(player, activity));
+		skillView.setInputType(InputType.TYPE_CLASS_NUMBER|InputType.TYPE_NUMBER_VARIATION_NORMAL);
+		
+		Button removeButton = new Button(this);
+		removeButton.setText("X");
+		removeButton.setOnClickListener(new RemoveActivityListener(this, activity));
+		
+		LinearLayout layout = new LinearLayout(this);
+		layout.setOrientation(LinearLayout.HORIZONTAL);
+		layout.addView(nameView);
+		layout.addView(skillView);
+		layout.addView(removeButton);
+		
+		parent.addView(layout);
+	}
+	
+	private void addGroupLayout(DatabaseObject group) {
+		ViewGroup parent = (ViewGroup)findViewById(R.id.layout_list_groups);
+		
+		TextView nameView = new TextView(this);
+		nameView.setText(group.getName());
+		
+		parent.addView(nameView);
 	}
 	
 	public void save(View view) {
@@ -84,12 +157,15 @@ public class PlayerEditActivity extends TeamBuilderActivity {
 		
 		String name = ((EditText)findViewById(R.id.text_name)).getText().toString();
 		
-		if (player == null) {
-			player = new Player(name);
+		db.open();
+		
+		if (player.getId() == 0) {
+			player.setName(name);
+			player = db.createPlayer(player);
 		}
 		
-		db.open();
-		player = db.createPlayer(player);
+		db.updatePlayer(player);
+		
 		db.close();
 		
 		Intent intent = new Intent(this, MainActivity.class);
@@ -106,6 +182,22 @@ public class PlayerEditActivity extends TeamBuilderActivity {
 		return fieldsOK;
 	}
 	
+	public void removeSkillForPlayer(DatabaseObject activity) {
+		
+		player.removeSkill(activity.getId());
+		activity.setStatus(DatabaseObject.REMOVE_VALUE_FOR_PLAYER);
+
+		if (availableActivityList.size() == 0) {
+			ViewGroup skillsLayout = (ViewGroup)findViewById(R.id.layout_add_skills);
+			skillsLayout.setVisibility(View.VISIBLE);
+		}
+		
+		availableActivityList.add(activity.getId());
+		
+		populateActivitySpinner();
+		
+	}
+	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
@@ -117,7 +209,31 @@ public class PlayerEditActivity extends TeamBuilderActivity {
 	            return true;
 	        default:
 	            return super.onOptionsItemSelected(item);
-    }
-
+		}
+	}
+	
+	private void populateActivitySpinner() {
+		
+		Spinner activitySpinner = (Spinner)(findViewById(R.id.spinner_skills));
+		populateSpinnerWithDatabaseObjects(activitySpinner, availableActivityList, activities);
+	}
+	
+	public Player getPlayer() {
+		return player;
+	}
+	
+	public void manageGroups(View v) {
+		oldGroups = groups;
+		
+		PlayerEditGroupsDialog dialog = PlayerEditGroupsDialog.newInstance();
+		dialog.show(getFragmentManager(), "GroupDialog");
+	}
+	
+	public void saveManagedGroups() {
+		oldGroups = groups;
+	}
+	
+	public void cancelManagedGroups() {
+		groups = oldGroups;
 	}
 }
