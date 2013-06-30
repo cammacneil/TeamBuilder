@@ -10,11 +10,9 @@ import com.teambuilder.Player;
 
 public class UpdateActivityDoneListener implements OnEditorActionListener {
 
-	private Player player;
 	private DatabaseObject activity;
 	
-	public UpdateActivityDoneListener(Player player, DatabaseObject activity) {
-		this.player = player;
+	public UpdateActivityDoneListener(DatabaseObject activity) {
 		this.activity = activity;
 	}
 	
@@ -22,8 +20,16 @@ public class UpdateActivityDoneListener implements OnEditorActionListener {
 	public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
 		boolean handled = false;
 		if (actionId == EditorInfo.IME_ACTION_DONE){
-			activity.setStatus(DatabaseObject.UPDATE_VALUE_FOR_PLAYER);
-			player.setSkill(activity.getId(), Integer.parseInt(v.getText().toString()));
+			Integer skill = Integer.parseInt(v.getText().toString());
+			if (skill < 0 || skill > 100) {
+				//Add alert dialog for invalid entry
+				v.setText((String)activity.getValue("skill"));
+			} else {
+				if (activity.getId() != -1) {
+					activity.setStatus(DatabaseObject.UPDATE_DATABASE);
+				}
+				activity.setValue("skill", skill);
+			}
 		}
 		
 		return handled;

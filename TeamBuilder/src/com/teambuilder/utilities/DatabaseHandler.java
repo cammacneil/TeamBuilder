@@ -12,6 +12,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 
 import com.teambuilder.DatabaseObject;
+import com.teambuilder.DatabaseObjectCollection;
 import com.teambuilder.Player;
 
 public class DatabaseHandler {
@@ -45,7 +46,6 @@ public class DatabaseHandler {
 	
 	public void updatePlayer(Player player) {
 		
-		Map<Integer, Integer> skills = player.getSkillsMap();
 		
 		ContentValues values = new ContentValues();
 		
@@ -143,25 +143,60 @@ public class DatabaseHandler {
 		return playerList;
 	}
 	
-	public Map<Integer, DatabaseObject> getActivityList() {
-		Map<Integer, DatabaseObject> activities = new HashMap<Integer, DatabaseObject>();
+	public DatabaseObjectCollection getActivityList() {
+		DatabaseObjectCollection activities = new DatabaseObjectCollection();
 		Cursor c = database.rawQuery("SELECT * FROM ACTIVITIES", null);
 		c.moveToFirst();
 		while(!c.isAfterLast()) {
-			activities.put(c.getInt(0), new DatabaseObject(c.getInt(0), c.getString(1)));
+			DatabaseObject dbo = new DatabaseObject(c.getInt(0));
+			dbo.setValue("name", c.getString(1));
+			activities.add(dbo);
 			c.moveToNext();
 		}
 		
 		return activities;
 	}
 	
-	public Map<Integer, DatabaseObject> getGroupList() {
-		Map<Integer, DatabaseObject> groups = new HashMap<Integer, DatabaseObject>();
+	public DatabaseObjectCollection getGroupList() {
+		DatabaseObjectCollection groups = new DatabaseObjectCollection();
 		Cursor c = database.rawQuery("SELECT * FROM GROUPS", null);
 		c.moveToFirst();
 		while(!c.isAfterLast()) {
-			groups.put(c.getInt(0), new DatabaseObject(c.getInt(0), c.getString(1)));
+			DatabaseObject dbo = new DatabaseObject(c.getInt(0));
+			dbo.setValue("name", c.getString(1));
+			groups.add(dbo);
 			c.moveToNext();
+		}
+		
+		return groups;
+	}
+	
+	public DatabaseObjectCollection getActivitiesForPlayer(long playerId) {
+		DatabaseObjectCollection activities = new DatabaseObjectCollection();
+		Cursor c = database.rawQuery("SELECT * FROM SKILLS INNER JOIN ACTIVITIES WHERE SKILLS.playerIndex=" + playerId + ";", null);
+		c.moveToFirst();
+		while(!c.isAfterLast()) {
+			DatabaseObject dbo = new DatabaseObject(c.getInt(0));
+			dbo.setValue("activityId", c.getInt(1));
+			dbo.setValue("playerId", c.getInt(2));
+			dbo.setValue("skill", c.getInt(3));
+			dbo.setValue("name", c.getString(5));
+			activities.add(dbo);
+		}
+		
+		return activities;
+	}
+	
+	public DatabaseObjectCollection getGroupsForPlayer(long playerId) {
+		DatabaseObjectCollection groups = new DatabaseObjectCollection();
+		Cursor c = database.rawQuery("SELECT * FROM INGROUPS INNER JOIN GROUPS WHERE INGROUPS.playerIndex=" + playerId + ";", null);
+		c.moveToFirst();
+		while(!c.isAfterLast()) {
+			DatabaseObject dbo = new DatabaseObject(c.getInt(0));
+			dbo.setValue("groupId", c.getInt(1));
+			dbo.setValue("playerId", c.getInt(2));
+			dbo.setValue("name", c.getString(4));
+			groups.add(dbo);
 		}
 		
 		return groups;

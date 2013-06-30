@@ -1,11 +1,11 @@
 package com.teambuilder;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import android.app.ActionBar;
-import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputType;
@@ -22,16 +22,16 @@ import com.teambuilder.listeners.RemoveActivityListener;
 import com.teambuilder.listeners.UpdateActivityDoneListener;
 import com.teambuilder.listeners.UpdateActivityFocusListener;
 import com.teambuilder.utilities.DatabaseHandler;
-import com.teambuilder.utilities.Utilities;
 
 public class PlayerEditActivity extends TeamBuilderActivity {
 
 	private Player player;
 	DatabaseHandler db;
 	ArrayList<Integer> availableActivityList;
-	Map<Integer, DatabaseObject> activities;
-	Map<Integer, DatabaseObject> groups;
-	Map<Integer, DatabaseObject> oldGroups;
+	DatabaseObjectCollection activities;
+	DatabaseObjectCollection groups;
+	DatabaseObjectCollection playerActivities;
+	DatabaseObjectCollection playerGroups;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -44,15 +44,20 @@ public class PlayerEditActivity extends TeamBuilderActivity {
 		ActionBar actionBar = getActionBar();
 		actionBar.setDisplayHomeAsUpEnabled(true);
 		
+		db = new DatabaseHandler(this);
+		
 		//New Player
 		if (player == null) {
 			actionBar.setTitle(R.string.player_add_title);
 			player = new Player();
+			playerActivities = new DatabaseObjectCollection();
+			playerGroups = new DatabaseObjectCollection();
 		} else { //Existing player
 			actionBar.setTitle(player.getName());
+			playerActivities = db.getActivitiesForPlayer(player.getId());
+			playerGroups = db.getGroupsForPlayer(player.getId());
 		}
 		
-		db = new DatabaseHandler(this);
 		populateFields();
 		
 	}
@@ -65,9 +70,9 @@ public class PlayerEditActivity extends TeamBuilderActivity {
 		
 		//Display activity information
 		availableActivityList = new ArrayList<Integer>();
-		availableActivityList.addAll(activities.keySet());
+		availableActivityList.addAll(activities.getIdsForObjects());
 		
-		Map<Integer, Integer> playerSkills = player.getSkillsMap();
+		Map<Integer, Integer> playerSkills = player.getSkills();
 		for (Integer key : playerSkills.keySet()) {
 			if (availableActivityList.contains(key))
 				availableActivityList.remove(Integer.valueOf(key));
@@ -79,7 +84,7 @@ public class PlayerEditActivity extends TeamBuilderActivity {
 		List<Integer> currentGroupList = player.getGroups();
 		if (currentGroupList != null) {
 			for (Integer i : currentGroupList) {
-				addGroupLayout(groups.get(i));
+				addGroupLayout(groups.getObjectWithId(i));
 			}
 		}
 	}
@@ -94,21 +99,35 @@ public class PlayerEditActivity extends TeamBuilderActivity {
 		try {
 			number = Integer.parseInt(skillText.getText().toString());
 			if (number < 0 || number > 100)
+				//Add in alert dialog for invalid number
 				return;
 		} catch (NumberFormatException e) {
+			//Add in alert dialog for invalid entry
 			return;
 		}
 		
-		Integer key = Utilities.getKeyByValue(activities, activity);
-		availableActivityList.remove(Integer.valueOf(key));
+		Integer id = (Integer)activity.getId();
+		availableActivityList.remove(Integer.valueOf(id));
 		
 		populateActivitySpinner();
 		
-		player.setSkill(key, number);
+		DatabaseObject dbo = playerActivities.getObjectWithProperty("activityId", id);
 		
-		activity.setStatus(DatabaseObject.ADD_VALUE_FOR_PLAYER);
+		if (dbo == null) { //Brand new skill level
+			dbo = new DatabaseObject();
+			dbo.setValue("activityId", id);
+			dbo.setValue("playerId", player.getId());
+			dbo.setValue("skill", number);
+			dbo.setValue("name", activity.getValue("name"));
+			dbo.setStatus(DatabaseObject.ADD_TO_DATABASE);
+			
+			playerActivities.add(dbo);
+		} else { //Skill level existed but was removed and added back
+			dbo.setValue("skill", number);
+			dbo.setStatus(DatabaseObject.UPDATE_DATABASE);
+		}
 		
-		addSkillLayout(activity);
+		addSkillLayout(dbo);
 		
 		if (availableActivityList.size() == 0) {
 			ViewGroup skillsLayout = (ViewGroup)findViewById(R.id.layout_add_skills);
@@ -116,21 +135,21 @@ public class PlayerEditActivity extends TeamBuilderActivity {
 		}
 	}
 	
-	private void addSkillLayout(DatabaseObject activity) {
+	private void addSkillLayout(DatabaseObject dbo) {
 		ViewGroup parent = (ViewGroup)findViewById(R.id.layout_skills);
 		
 		TextView nameView = new TextView(this);
-		nameView.setText(activity.getName());
+		nameView.setText((String)dbo.getValue("name"));
 		
 		EditText skillView = new EditText(this);
-		skillView.setText(String.valueOf(player.getSkill(activity.getId())));
-		skillView.setOnEditorActionListener(new UpdateActivityDoneListener(player, activity));
-		skillView.setOnFocusChangeListener(new UpdateActivityFocusListener(player, activity));
+		skillView.setText(String.valueOf(dbo.getValue("skill")));
+		skillView.setOnEditorActionListener(new UpdateActivityDoneListener(dbo));
+		skillView.setOnFocusChangeListener(new UpdateActivityFocusListener(dbo));
 		skillView.setInputType(InputType.TYPE_CLASS_NUMBER|InputType.TYPE_NUMBER_VARIATION_NORMAL);
 		
 		Button removeButton = new Button(this);
 		removeButton.setText("X");
-		removeButton.setOnClickListener(new RemoveActivityListener(this, activity));
+		removeButton.setOnClickListener(new RemoveActivityListener(this, dbo));
 		
 		LinearLayout layout = new LinearLayout(this);
 		layout.setOrientation(LinearLayout.HORIZONTAL);
@@ -141,13 +160,27 @@ public class PlayerEditActivity extends TeamBuilderActivity {
 		parent.addView(layout);
 	}
 	
-	private void addGroupLayout(DatabaseObject group) {
+	private void addGroupLayout(DatabaseObject dbo) {
 		ViewGroup parent = (ViewGroup)findViewById(R.id.layout_list_groups);
 		
 		TextView nameView = new TextView(this);
-		nameView.setText(group.getName());
+		nameView.setText((String)dbo.getValue("name"));
+		nameView.setTag(dbo);
 		
 		parent.addView(nameView);
+	}
+	
+	private void removeGroupLayout(DatabaseObject dbo) {
+		ViewGroup parent = (ViewGroup)findViewById(R.id.layout_list_groups);
+		
+		for (int i=0;i<parent.getChildCount();i++) {
+			View v = parent.getChildAt(i);
+			if (v.getTag() == dbo) {
+				v.setVisibility(View.GONE);
+				v.setTag(null);
+				break;
+			}
+		}
 	}
 	
 	public void save(View view) {
@@ -182,17 +215,20 @@ public class PlayerEditActivity extends TeamBuilderActivity {
 		return fieldsOK;
 	}
 	
-	public void removeSkillForPlayer(DatabaseObject activity) {
+	public void removeSkillForPlayer(DatabaseObject dbo) {
 		
-		player.removeSkill(activity.getId());
-		activity.setStatus(DatabaseObject.REMOVE_VALUE_FOR_PLAYER);
+		if (dbo.getId() == -1) {
+			playerActivities.remove(dbo);
+		} else {
+			dbo.setStatus(DatabaseObject.REMOVE_FROM_DATABASE);
+		}
 
 		if (availableActivityList.size() == 0) {
 			ViewGroup skillsLayout = (ViewGroup)findViewById(R.id.layout_add_skills);
 			skillsLayout.setVisibility(View.VISIBLE);
 		}
 		
-		availableActivityList.add(activity.getId());
+		availableActivityList.add((Integer)dbo.getValue("activityId"));
 		
 		populateActivitySpinner();
 		
@@ -215,7 +251,7 @@ public class PlayerEditActivity extends TeamBuilderActivity {
 	private void populateActivitySpinner() {
 		
 		Spinner activitySpinner = (Spinner)(findViewById(R.id.spinner_skills));
-		populateSpinnerWithDatabaseObjects(activitySpinner, availableActivityList, activities);
+		populateSpinnerWithDatabaseObjects(activitySpinner, activities, availableActivityList);
 	}
 	
 	public Player getPlayer() {
@@ -223,17 +259,67 @@ public class PlayerEditActivity extends TeamBuilderActivity {
 	}
 	
 	public void manageGroups(View v) {
-		oldGroups = groups;
-		
-		PlayerEditGroupsDialog dialog = PlayerEditGroupsDialog.newInstance();
+		PlayerEditGroupsDialog dialog = new PlayerEditGroupsDialog();
+		dialog.groups = getGroupStringList();
+		dialog.preSelectedItems = getPreSelectedList();
 		dialog.show(getFragmentManager(), "GroupDialog");
 	}
 	
-	public void saveManagedGroups() {
-		oldGroups = groups;
+	private String[] getGroupStringList() {
+		String[] result = new String[groups.getAll().size()];
+		
+		for (int i=0;i<result.length;i++) {
+			DatabaseObject dbo = groups.get(i);
+			result[i] = dbo.getName();
+		}
+		
+		return result;
+	}
+	
+	private boolean[] getPreSelectedList() {
+		boolean[] result = new boolean[groups.getAll().size()];
+		
+		for (int i=0;i<result.length;i++) {
+			DatabaseObject dbo = groups.get(i);
+			if (playerGroups.getObjectWithProperty("groupId", dbo.getId()) != null) {
+				result[i] = true;
+			} else {
+				result[i] = false;
+			}
+		}
+		
+		return result;
+	}
+	
+	public void saveManagedGroups(List<String> selectedItems) {
+		Iterator<DatabaseObject> iter = playerGroups.getAll().iterator();
+		while (iter.hasNext()) {
+			DatabaseObject dbo = iter.next();
+			if (selectedItems.contains(dbo.getName()) == false) {
+				if (dbo.getId() == -1) {
+					iter.remove();
+				} else {
+					dbo.setStatus(DatabaseObject.REMOVE_FROM_DATABASE);
+				}
+				removeGroupLayout(dbo);
+			} else {
+				selectedItems.remove(dbo.getName());
+			}
+		}
+		
+		for (String name : selectedItems) {
+			DatabaseObject dbo = new DatabaseObject();
+			dbo.setValue("name", name);
+			dbo.setValue("playerId", player.getId());
+			dbo.setValue("groupId", groups.getObjectWithProperty("name", name).getId());
+			dbo.setStatus(DatabaseObject.ADD_TO_DATABASE);
+			playerGroups.add(dbo);
+			
+			addGroupLayout(dbo);
+		}
 	}
 	
 	public void cancelManagedGroups() {
-		groups = oldGroups;
+
 	}
 }

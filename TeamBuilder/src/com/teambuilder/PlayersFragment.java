@@ -48,8 +48,8 @@ public class PlayersFragment extends TeamBuilderFragment {
 		db.open();
 		
 		List<Player> playerList = db.getPlayerList(null);
-		Map<Integer, DatabaseObject> activityList = db.getActivityList();
-		Map<Integer, DatabaseObject> groupList = db.getGroupList();
+		DatabaseObjectCollection activityList = db.getActivityList();
+		DatabaseObjectCollection groupList = db.getGroupList();
 
 		db.close();
 
@@ -84,14 +84,14 @@ public class PlayersFragment extends TeamBuilderFragment {
 		});
 	}
 
-	private void populateActivitySpinner(Map<Integer, DatabaseObject> activityList) {
+	private void populateActivitySpinner(DatabaseObjectCollection activityList) {
 		Spinner activitySpinner = (Spinner) getActivity().findViewById(R.id.spinner_activity);
-		getTeamBuilderActivity().populateSpinnerWithDatabaseObjects(activitySpinner, new ArrayList<Integer>(activityList.keySet()), activityList);
+		getTeamBuilderActivity().populateSpinnerWithDatabaseObjects(activitySpinner, activityList, null);
 	}
 	
-	private void populateGroupSpinner(Map<Integer, DatabaseObject> groupList) {
+	private void populateGroupSpinner(DatabaseObjectCollection groupList) {
 		Spinner activitySpinner = (Spinner) getActivity().findViewById(R.id.spinner_group);
-		getTeamBuilderActivity().populateSpinnerWithDatabaseObjects(activitySpinner, new ArrayList<Integer>(groupList.keySet()), groupList);
+		getTeamBuilderActivity().populateSpinnerWithDatabaseObjects(activitySpinner, groupList, null);
 	}
 
 	@Override

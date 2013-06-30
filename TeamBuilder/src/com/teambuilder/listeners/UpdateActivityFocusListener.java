@@ -9,11 +9,9 @@ import com.teambuilder.Player;
 
 public class UpdateActivityFocusListener implements OnFocusChangeListener {
 
-	Player player;
 	DatabaseObject activity;
 	
-	public UpdateActivityFocusListener(Player player, DatabaseObject activity) {
-		this.player = player;
+	public UpdateActivityFocusListener(DatabaseObject activity) {
 		this.activity = activity;
 	}
 	
@@ -21,8 +19,17 @@ public class UpdateActivityFocusListener implements OnFocusChangeListener {
 	public void onFocusChange(View v, boolean hasFocus) {
 		if (hasFocus == false) {
 			String textValue = ((EditText)v).getText().toString();
-			player.setSkill(activity.getId(), Integer.parseInt(textValue));
-			activity.setStatus(DatabaseObject.UPDATE_VALUE_FOR_PLAYER);
+			
+			Integer skill = Integer.parseInt(textValue);
+			if (skill < 0 || skill > 100) {
+				//Add alert dialog for invalid entry
+				((EditText)v).setText((String)activity.getValue("skill"));
+			} else {
+				if (activity.getId() != -1) {
+					activity.setStatus(DatabaseObject.UPDATE_DATABASE);
+				}
+				activity.setValue("skill", skill);
+			}
 		}
 	}
 

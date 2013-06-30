@@ -1,22 +1,36 @@
 package com.teambuilder;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class DatabaseObject {
 
 	public static final int NORMAL = 0;
 	public static final int ADD_TO_DATABASE = 1;
-	public static final int REMOVE_FROM_DATABASE = 2;
-	public static final int ADD_VALUE_FOR_PLAYER = 3;
-	public static final int UPDATE_VALUE_FOR_PLAYER = 3;
-	public static final int REMOVE_VALUE_FOR_PLAYER = 4;
+	public static final int UPDATE_DATABASE = 2;
+	public static final int REMOVE_FROM_DATABASE = 3;
 	
+	public static final int NO_ID = -1;
 	
 	private int status;
-	private int id;
-	private String name;
+	private Integer id;
+	private Map<String, Object> values;
 	
-	public DatabaseObject (int id, String name) {
+	public DatabaseObject() {
+		this(NO_ID);
+	}
+	
+	public DatabaseObject (int id) {
+		this(id, null);
+	}
+	
+	public DatabaseObject (Integer id, Map<String, Object> values) {
 		this.id = id;
-		this.name = name;
+		if (values != null) {
+			this.values = values;
+		} else {
+			this.values = new HashMap<String, Object>();
+		}
 		status = NORMAL;
 	}
 
@@ -35,18 +49,35 @@ public class DatabaseObject {
 	public void setId(int id) {
 		this.id = id;
 	}
-
-	public String getName() {
-		return name;
+	
+	public Object getValue(String key) {
+		return values.get(key);
+	}
+	
+	public Map<String, Object> getValues() {
+		return values;
 	}
 
-	public void setName(String name) {
-		this.name = name;
+	public void setValue(String key, Object value) {
+		values.put(key, value);
+	}
+	
+	public String getName() {
+		Object name = values.get("name");
+		if (name != null) {
+			return (String)name;
+		} else {
+			return null;
+		}
 	}
 	
 	@Override
 	public String toString() {
-		return name;
+		if (values.get("name") != null) {
+			return (String)values.get("name");
+		} else {
+			return super.toString();
+		}
 	}
 	
 }

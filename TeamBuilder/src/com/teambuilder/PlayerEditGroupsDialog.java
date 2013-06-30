@@ -1,5 +1,6 @@
 package com.teambuilder;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -8,17 +9,13 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ListView;
-
-import com.teambuilder.adapters.PlayerEditGroupAdapter;
 
 public class PlayerEditGroupsDialog extends DialogFragment {
 
-	Map<Integer, DatabaseObject> groupList;
-	List<Integer> currentGroups;
+	String[] groups;
+	List<String> selectedItems;
+	boolean[] preSelectedItems;
 	
 	static PlayerEditGroupsDialog newInstance() {
 		
@@ -29,34 +26,17 @@ public class PlayerEditGroupsDialog extends DialogFragment {
 		
 		return dialog;
 	}
-	
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-	}
-
-	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container,
-			Bundle savedInstanceState) {
-		
-//		PlayerEditActivity parent = (PlayerEditActivity)getActivity();
-//		groupList = parent.groups;
-//		
-//		currentGroups = parent.getPlayer().getGroups();
-//		
-//		View v = inflater.inflate(R.layout.fragment_manage_player_groups, container, false);
-//		
-//		ListView view = (ListView)v.findViewById(R.id.listview_player_edit_groups);
-//		
-//		PlayerEditGroupAdapter adapter = new PlayerEditGroupAdapter(parent, R.layout.fragment_manage_player_groups, groupList, currentGroups);
-//		view.setAdapter(adapter);
-//		
-//		return v;
-		return super.onCreateView(inflater, container, savedInstanceState);
-	}
 
 	@Override
 	public Dialog onCreateDialog(Bundle savedInstanceState) {
+		
+		selectedItems = new ArrayList<String>();
+		
+		for (int i=0;i<groups.length;i++) {
+			if (preSelectedItems[i]) {
+				selectedItems.add(groups[i]);
+			}
+		}
 		
 		ListView view = (ListView)getActivity().findViewById(R.id.listview_player_edit_groups);
 		
@@ -66,7 +46,7 @@ public class PlayerEditGroupsDialog extends DialogFragment {
 					new DialogInterface.OnClickListener() {
 						@Override
 						public void onClick(DialogInterface dialog, int which) {
-							((PlayerEditActivity)getActivity()).saveManagedGroups();
+							((PlayerEditActivity)getActivity()).saveManagedGroups(selectedItems);
 						}
 					}
 			)
@@ -78,6 +58,18 @@ public class PlayerEditGroupsDialog extends DialogFragment {
 						}
 					}
 			)
+			.setMultiChoiceItems(groups, preSelectedItems, 
+					new DialogInterface.OnMultiChoiceClickListener() {
+						
+						@Override
+						public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+							if (isChecked) {
+								selectedItems.add(groups[which]);
+							} else if (selectedItems.contains(groups[which])) {
+								selectedItems.remove(groups[which]);
+							}
+						}
+					})
 			.setView(view)
 			.show();
 	}

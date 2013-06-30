@@ -14,7 +14,7 @@ public class Player implements Parcelable {
 	private String name;
 	
 	private List<Integer> groups;
-	private Map<Integer, Integer> skillsMap;
+	private Map<Integer, Integer> skills;
 	
 	public static String label = "Player";
 	
@@ -27,12 +27,12 @@ public class Player implements Parcelable {
 		this(name, null, null);
 	}
 
-	public Player (String name, Map<Integer, Integer> skillsMap, ArrayList<Integer> groups) {
+	public Player (String name, Map<Integer, Integer> skills, List<Integer> groups) {
 		this.name = name;
-		if (skillsMap != null)
-			this.skillsMap = skillsMap;
+		if (skills != null)
+			this.skills = skills;
 		else
-			this.skillsMap = new HashMap<Integer, Integer>();
+			this.skills = new HashMap<Integer, Integer>();
 		
 		if (groups != null)
 			this.groups = groups;
@@ -44,7 +44,7 @@ public class Player implements Parcelable {
 	private Player(Parcel in) {
 		id = in.readLong();
         name = in.readString();
-        skillsMap = in.readHashMap(HashMap.class.getClassLoader());
+        skills = in.readHashMap(HashMap.class.getClassLoader());
         groups = in.readArrayList(ArrayList.class.getClassLoader());
     }
 	
@@ -65,28 +65,27 @@ public class Player implements Parcelable {
 	}
 	
 	public void setSkill(Integer activityId, Integer skillLevel) {
-		skillsMap.put(activityId, skillLevel);
+		skills.put(activityId, skillLevel);
 	}
 	
 	public Integer getSkill(Integer activityId) {
-		if (skillsMap.containsKey(activityId))
-			return skillsMap.get(activityId);
-		else
-			return null;
+		return skills.get(activityId);
 	}
 	
 	public void removeSkill(Integer activityId) {
-		if (skillsMap.containsKey(activityId))
-			skillsMap.remove(activityId);
+		if (skills.containsKey(activityId)) {
+			skills.remove(activityId);
+		}
 	}
 	
-	public Map<Integer, Integer> getSkillsMap() {
-		return skillsMap;
+	public Map<Integer, Integer> getSkills() {
+		return skills;
 	}
 
 	public void addGroup(Integer groupId) {
-		if (!groups.contains(groupId))
+		if (!groups.contains(groupId)) {
 			groups.add(groupId);
+		}
 	}
 	
 	public void removeGroup(Integer groupId) {
@@ -108,12 +107,12 @@ public class Player implements Parcelable {
 		// TODO Auto-generated method stub
 		return 0;
 	}
-
+	
 	@Override
 	public void writeToParcel(Parcel out, int flags) {
 		out.writeLong(id);
 		out.writeString(name);
-		out.writeMap(skillsMap);
+		out.writeMap(skills);
 		out.writeList(groups);
 	}
 
