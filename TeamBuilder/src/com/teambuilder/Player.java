@@ -15,6 +15,7 @@ public class Player implements Parcelable {
 	
 	private List<Integer> groups;
 	private Map<Integer, Integer> skills;
+	private boolean isSelected = false;
 	
 	public static String label = "Player";
 	
@@ -95,6 +96,14 @@ public class Player implements Parcelable {
 	
 	public List<Integer> getGroups() {
 		return groups;
+	}
+	
+	public boolean isSelected() {
+		return isSelected;
+	}
+
+	public void setSelected(boolean isSelected) {
+		this.isSelected = isSelected;
 	}
 	
 	@Override

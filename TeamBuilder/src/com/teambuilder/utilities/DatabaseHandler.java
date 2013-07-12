@@ -65,35 +65,42 @@ public class DatabaseHandler {
 		return database.insert(DatabaseOpenHelper.Tables.ACTIVITIES.toString(), null, values);
 	}
 	
-	public boolean addPlayerToGroup(Integer playerId, Integer groupId) {
+	public boolean addPlayerToGroup(long playerId, Integer groupId) {
 		ContentValues values = new ContentValues();
-		values.put(DatabaseOpenHelper.playerIndex, playerId);
-		values.put(DatabaseOpenHelper.groupIndex, groupId);
+		values.put(DatabaseOpenHelper.playerId, playerId);
+		values.put(DatabaseOpenHelper.groupId, groupId);
 		
 		return database.insert(DatabaseOpenHelper.Tables.INGROUPS.toString(), null, values) > 0;
 	}
 	
-	public boolean addSkillLevel(Integer playerId, Integer activityId, Integer skill) {
+	public boolean addSkillLevel(long playerId, Integer activityId, Integer skill) {
 		ContentValues values = new ContentValues();
-		values.put(DatabaseOpenHelper.playerIndex, playerId);
-		values.put(DatabaseOpenHelper.activityIndex, activityId);
+		values.put(DatabaseOpenHelper.playerId, playerId);
+		values.put(DatabaseOpenHelper.activityId, activityId);
 		values.put(DatabaseOpenHelper.skillLevel, skill);
 		
 		return database.insert(DatabaseOpenHelper.Tables.SKILLS.toString(), null, values) > 0;
 	}
 	
-	public boolean removePlayerFromGroup(Integer playerId, Integer groupId) {
-		String whereClause = DatabaseOpenHelper.playerIndex + " = " + playerId + " AND " + DatabaseOpenHelper.groupIndex + " = " + groupId;
+	public int updateSkillLevel(long playerId, Integer activityId, Integer skill) {
+		ContentValues values = new ContentValues();
+		values.put(DatabaseOpenHelper.skillLevel, skill);
+		String whereClause = DatabaseOpenHelper.playerId + " = " + playerId + " AND " + DatabaseOpenHelper.activityId + " = " + activityId;
+		return database.update(DatabaseOpenHelper.Tables.SKILLS.toString(), values, whereClause, null);
+	}
+	
+	public boolean removePlayerFromGroup(long playerId, Integer groupId) {
+		String whereClause = DatabaseOpenHelper.playerId + " = " + playerId + " AND " + DatabaseOpenHelper.groupId + " = " + groupId;
 		return database.delete(DatabaseOpenHelper.Tables.INGROUPS.toString(), whereClause, null) > 0;
 	}
 	
-	public boolean removeSkillLevel(Integer playerId, Integer activityId) {
-		String whereClause = DatabaseOpenHelper.playerIndex + " = " + playerId + " AND " + DatabaseOpenHelper.activityIndex + " = " + activityId;
+	public boolean removeSkillLevel(long playerId, Integer activityId) {
+		String whereClause = DatabaseOpenHelper.playerId + " = " + playerId + " AND " + DatabaseOpenHelper.activityId + " = " + activityId;
 		return database.delete(DatabaseOpenHelper.Tables.SKILLS.toString(), whereClause, null) > 0;
 	}
 	
-	public boolean deletePlayer(Integer playerId) {
-		String whereClause = DatabaseOpenHelper.playerIndex + " = " + playerId;
+	public boolean deletePlayer(long playerId) {
+		String whereClause = DatabaseOpenHelper.playerId + " = " + playerId;
 		
 		database.delete(DatabaseOpenHelper.Tables.INGROUPS.toString(), whereClause, null);
 		database.delete(DatabaseOpenHelper.Tables.SKILLS.toString(), whereClause, null);
@@ -101,28 +108,27 @@ public class DatabaseHandler {
 	}
 	
 	public boolean deleteGroup(Integer groupId) {
-		String whereClause = DatabaseOpenHelper.groupIndex + " = " + groupId;
+		String whereClause = DatabaseOpenHelper.groupId + " = " + groupId;
 		
 		database.delete(DatabaseOpenHelper.Tables.INGROUPS.toString(), whereClause, null);
 		return database.delete(DatabaseOpenHelper.Tables.GROUPS.toString(), whereClause, null) > 0;
 	}
 	
 	public boolean deleteActivity(Integer activityId) {
-		String whereClause = DatabaseOpenHelper.groupIndex + " = " + activityId;
+		String whereClause = DatabaseOpenHelper.groupId + " = " + activityId;
 		
 		database.delete(DatabaseOpenHelper.Tables.SKILLS.toString(), whereClause, null);
 		return database.delete(DatabaseOpenHelper.Tables.ACTIVITIES.toString(), whereClause, null) > 0;
 	}
 	
 	public ArrayList<Player> getPlayerList(Integer groupId) {
-		String playerTable = DatabaseOpenHelper.Tables.PLAYERS.toString();
-		String skillsTable = DatabaseOpenHelper.Tables.SKILLS.toString();
-		SQLiteQueryBuilder queryBuilder = new SQLiteQueryBuilder();
-		queryBuilder.setTables(playerTable + ", " + skillsTable);
-		queryBuilder.appendWhere(playerTable + "." + DatabaseOpenHelper.primaryIndex + "=" + skillsTable + "." + DatabaseOpenHelper.playerIndex);
+		String sql = "SELECT * FROM PLAYERS";
+				
+		if (groupId > -1) {
+			sql += " INNER JOIN INGROUPS ON PLAYERS._id=INGROUPS.playerId WHERE INGROUPS.groupId=" + groupId;
+		}
 		
-		Cursor c = database.rawQuery("SELECT * FROM PLAYERS", null);
-//		Cursor c = queryBuilder.query(database, null, null, null, null, null, null);
+		Cursor c = database.rawQuery(sql, null);
 		
 		return createPlayerList(c);
 	}
@@ -133,6 +139,14 @@ public class DatabaseHandler {
 		while(!c.isAfterLast()) {
 			String name = c.getString(1);
 			Player player = new Player(name);
+			player.setId(c.getLong(0));
+
+			DatabaseObjectCollection dbos = getActivitiesForPlayer(c.getLong(0));
+			for (DatabaseObject dbo : dbos.getAll()) {
+				Integer activityId = (Integer)dbo.getValue("activityId");
+				Integer skill = (Integer)dbo.getValue("skill");
+				player.setSkill(activityId, skill);
+			}
 			
 			playerList.add(player);
 			c.moveToNext();
@@ -173,7 +187,7 @@ public class DatabaseHandler {
 	
 	public DatabaseObjectCollection getActivitiesForPlayer(long playerId) {
 		DatabaseObjectCollection activities = new DatabaseObjectCollection();
-		Cursor c = database.rawQuery("SELECT * FROM SKILLS INNER JOIN ACTIVITIES WHERE SKILLS.playerIndex=" + playerId + ";", null);
+		Cursor c = database.rawQuery("SELECT * FROM SKILLS INNER JOIN ACTIVITIES ON SKILLS.activityId=ACTIVITIES._id WHERE SKILLS.playerId=" + playerId + ";", null);
 		c.moveToFirst();
 		while(!c.isAfterLast()) {
 			DatabaseObject dbo = new DatabaseObject(c.getInt(0));
@@ -182,6 +196,7 @@ public class DatabaseHandler {
 			dbo.setValue("skill", c.getInt(3));
 			dbo.setValue("name", c.getString(5));
 			activities.add(dbo);
+			c.moveToNext();
 		}
 		
 		return activities;
@@ -189,7 +204,7 @@ public class DatabaseHandler {
 	
 	public DatabaseObjectCollection getGroupsForPlayer(long playerId) {
 		DatabaseObjectCollection groups = new DatabaseObjectCollection();
-		Cursor c = database.rawQuery("SELECT * FROM INGROUPS INNER JOIN GROUPS WHERE INGROUPS.playerIndex=" + playerId + ";", null);
+		Cursor c = database.rawQuery("SELECT * FROM INGROUPS INNER JOIN GROUPS ON INGROUPS.groupId=GROUPS._id WHERE INGROUPS.playerId=" + playerId + ";", null);
 		c.moveToFirst();
 		while(!c.isAfterLast()) {
 			DatabaseObject dbo = new DatabaseObject(c.getInt(0));
@@ -197,13 +212,14 @@ public class DatabaseHandler {
 			dbo.setValue("playerId", c.getInt(2));
 			dbo.setValue("name", c.getString(4));
 			groups.add(dbo);
+			c.moveToNext();
 		}
 		
 		return groups;
 	}
 	
 	private boolean isSkillMappedForPlayer(long playerId, Integer activityId) {
-		Cursor c = database.rawQuery("SELECT * FROM SKILLS WHERE playerIndex=" + playerId + " AND activityIndex=" + activityId + ";", null);
+		Cursor c = database.rawQuery("SELECT * FROM SKILLS WHERE playerId=" + playerId + " AND activityId=" + activityId + ";", null);
 		if (c.getCount() > 0) {
 			return true;
 		}
@@ -212,7 +228,7 @@ public class DatabaseHandler {
 	}
 	
 	private boolean isGroupMappedForPlayer(long playerId, Integer groupId) {
-		Cursor c = database.rawQuery("SELECT * FROM INGROUPS WHERE playerIndex=" + playerId + " AND groupIndex=" + groupId + ";", null);
+		Cursor c = database.rawQuery("SELECT * FROM INGROUPS WHERE playerId=" + playerId + " AND groupId=" + groupId + ";", null);
 		if (c.getCount() > 0) {
 			return true;
 		}

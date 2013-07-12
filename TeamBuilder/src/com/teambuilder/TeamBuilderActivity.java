@@ -1,5 +1,6 @@
 package com.teambuilder;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -9,6 +10,8 @@ import android.widget.Spinner;
 
 public class TeamBuilderActivity extends Activity {
 
+	private ArrayList<Player> players;
+	
 	/**
 	 * @param spinner The spinner which will be populated.
 	 * @param dbos The DatabaseObjectCollection used to supply DBOs to the ArrayAdapter.
@@ -42,5 +45,13 @@ public class TeamBuilderActivity extends Activity {
 			adapter.add(nameMap.get(i));
 		
 		spinner.setAdapter(adapter);
+	}
+
+	public ArrayList<Player> getPlayers() {
+		return players;
+	}
+
+	public void setPlayers(ArrayList<Player> players) {
+		this.players = players;
 	}
 }

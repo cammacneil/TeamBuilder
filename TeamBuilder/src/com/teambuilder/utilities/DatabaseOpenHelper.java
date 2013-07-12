@@ -11,25 +11,25 @@ public class DatabaseOpenHelper extends SQLiteOpenHelper {
 	
 	public enum Tables {PLAYERS, GROUPS, INGROUPS, ACTIVITIES, SKILLS};
 	
-	public static final String primaryIndex = "_id";
+	public static final String primaryId = "_id";
 	public static final String name = "name";
 	public static final String groupName = "groupName";
-	public static final String groupIndex = "groupIndex";
-	public static final String playerIndex = "playerIndex";
+	public static final String groupId = "groupId";
+	public static final String playerId = "playerId";
 	public static final String activityName = "activityName";
-	public static final String activityIndex = "activityIndex";
+	public static final String activityId = "activityId";
 	public static final String skillLevel = "skillLevel";
 	
-	private static final String createPlayersTable = "CREATE TABLE PLAYERS (" + primaryIndex + " integer primary key " +
+	private static final String createPlayersTable = "CREATE TABLE PLAYERS (" + primaryId + " integer primary key " +
 			"autoincrement, " + name + " text not null);";
-	private static final String createGroupsTable = "CREATE TABLE GROUPS (" + primaryIndex + " integer primary key " +
+	private static final String createGroupsTable = "CREATE TABLE GROUPS (" + primaryId + " integer primary key " +
 			"autoincrement, " + groupName + " text not null);";
-	private static final String createInGroupsTable = "CREATE TABLE INGROUPS (" + primaryIndex + " integer primary key " +
-			"autoincrement, " + groupIndex + " integer not null, " + playerIndex + " integer not null);";
-	private static final String createActivitiesTable = "CREATE TABLE ACTIVITIES (" + primaryIndex + " integer primary key " +
+	private static final String createInGroupsTable = "CREATE TABLE INGROUPS (" + primaryId + " integer primary key " +
+			"autoincrement, " + groupId + " integer not null, " + playerId + " integer not null);";
+	private static final String createActivitiesTable = "CREATE TABLE ACTIVITIES (" + primaryId + " integer primary key " +
 			"autoincrement, " + activityName + " text not null);";
-	private static final String createSkillsTable = "CREATE TABLE SKILLS (" + primaryIndex + " integer primary key " +
-			"autoincrement, " + activityIndex + " integer not null, " + playerIndex + " integer not null, " +
+	private static final String createSkillsTable = "CREATE TABLE SKILLS (" + primaryId + " integer primary key " +
+			"autoincrement, " + activityId + " integer not null, " + playerId + " integer not null, " +
 					skillLevel + " integer not null);";
 	
 	public DatabaseOpenHelper(Context context) {

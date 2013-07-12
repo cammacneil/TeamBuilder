@@ -3,15 +3,16 @@ package com.teambuilder;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import android.app.ActionBar;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -45,6 +46,7 @@ public class PlayerEditActivity extends TeamBuilderActivity {
 		actionBar.setDisplayHomeAsUpEnabled(true);
 		
 		db = new DatabaseHandler(this);
+		db.open();
 		
 		//New Player
 		if (player == null) {
@@ -53,39 +55,44 @@ public class PlayerEditActivity extends TeamBuilderActivity {
 			playerActivities = new DatabaseObjectCollection();
 			playerGroups = new DatabaseObjectCollection();
 		} else { //Existing player
+			
 			actionBar.setTitle(player.getName());
 			playerActivities = db.getActivitiesForPlayer(player.getId());
 			playerGroups = db.getGroupsForPlayer(player.getId());
+			
 		}
+		
+		activities = db.getActivityList();
+		groups = db.getGroupList();
+		
+		db.close();
 		
 		populateFields();
 		
 	}
 	
 	private void populateFields() {
-		db.open();
-		activities = db.getActivityList();
-		groups = db.getGroupList();
-		db.close();
+		//Display text-based information
+		if (player.getName() != null) {
+			EditText nameText = (EditText)findViewById(R.id.text_name);
+			nameText.setText(player.getName());
+		}
 		
 		//Display activity information
 		availableActivityList = new ArrayList<Integer>();
 		availableActivityList.addAll(activities.getIdsForObjects());
 		
-		Map<Integer, Integer> playerSkills = player.getSkills();
-		for (Integer key : playerSkills.keySet()) {
-			if (availableActivityList.contains(key))
-				availableActivityList.remove(Integer.valueOf(key));
+		for (DatabaseObject dbo : playerActivities.getAll()) {
+			addSkillLayout(dbo);
+			if (availableActivityList.contains((Integer)dbo.getValue("activityId")))
+				availableActivityList.remove(Integer.valueOf((Integer)dbo.getValue("activityId")));
 		}
 		
 		populateActivitySpinner();
 		
 		//Display group information
-		List<Integer> currentGroupList = player.getGroups();
-		if (currentGroupList != null) {
-			for (Integer i : currentGroupList) {
-				addGroupLayout(groups.getObjectWithId(i));
-			}
+		for (DatabaseObject dbo : playerGroups.getAll()) {
+			addGroupLayout(groups.getObjectWithId((Integer)dbo.getValue("groupId")));
 		}
 	}
 	
@@ -133,6 +140,9 @@ public class PlayerEditActivity extends TeamBuilderActivity {
 			ViewGroup skillsLayout = (ViewGroup)findViewById(R.id.layout_add_skills);
 			skillsLayout.setVisibility(View.GONE);
 		}
+		
+		InputMethodManager inputManager = (InputMethodManager)this.getSystemService(Context.INPUT_METHOD_SERVICE); 
+		inputManager.hideSoftInputFromWindow(this.getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
 	}
 	
 	private void addSkillLayout(DatabaseObject dbo) {
@@ -197,7 +207,29 @@ public class PlayerEditActivity extends TeamBuilderActivity {
 			player = db.createPlayer(player);
 		}
 		
-		db.updatePlayer(player);
+		for (DatabaseObject dbo : playerActivities.getAll()) {
+			switch(dbo.getStatus()) {
+			case DatabaseObject.ADD_TO_DATABASE:
+				db.addSkillLevel(player.getId(), (Integer)dbo.getValue("activityId"), (Integer)dbo.getValue("skill"));
+				break;
+			case DatabaseObject.UPDATE_DATABASE:
+				db.updateSkillLevel(player.getId(), (Integer)dbo.getValue("activityId"), (Integer)dbo.getValue("skill"));
+				break;
+			case DatabaseObject.REMOVE_FROM_DATABASE:
+				db.removeSkillLevel(player.getId(), (Integer)dbo.getValue("activityId"));
+				break;
+			}
+		}
+		
+		for (DatabaseObject dbo : playerGroups.getAll()) {
+			switch(dbo.getStatus()) {
+			case DatabaseObject.ADD_TO_DATABASE:
+				db.addPlayerToGroup(player.getId(), (Integer)dbo.getValue("groupId"));
+				break;
+			case DatabaseObject.REMOVE_FROM_DATABASE:
+				db.removePlayerFromGroup(player.getId(), (Integer)dbo.getValue("groupId"));
+			}
+		}
 		
 		db.close();
 		
